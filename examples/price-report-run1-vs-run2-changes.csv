@@ -1,0 +1,23 @@
+﻿change,sku,name,category,currency,old_price,new_price,price_delta,price_delta_pct,old_in_stock,new_in_stock,old_stock_count,new_stock_count,alert,url
+price_down,5eff05e59f905a49,Girl With a Pearl Earring,Historical Fiction,GBP,26.77,20.10,-6.67,-24.9,yes,yes,4,4,yes,https://books.toscrape.com/catalogue/girl-with-a-pearl-earring_322/index.html
+price_down,1809259a5a5f1d8d,Vagabonding: An Uncommon Guide to the Art of Long-Term World Travel,Travel,GBP,36.94,27.92,-9.02,-24.4,yes,yes,8,8,yes,https://books.toscrape.com/catalogue/vagabonding-an-uncommon-guide-to-the-art-of-long-term-world-travel_552/index.html
+price_down,366a236aa1ea6f07,The Road to Little Dribbling: Adventures of an American in Britain (Notes From a Small Island #2),Travel,GBP,23.21,18.37,-4.84,-20.9,yes,yes,3,3,yes,https://books.toscrape.com/catalogue/the-road-to-little-dribbling-adventures-of-an-american-in-britain-notes-from-a-small-island-2_277/index.html
+price_down,aa35446aab16017f,"Quarter Life Poetry: Poems for the Young, Broke and Hangry",Poetry,GBP,50.89,41.41,-9.48,-18.6,yes,yes,14,14,yes,https://books.toscrape.com/catalogue/quarter-life-poetry-poems-for-the-young-broke-and-hangry_727/index.html
+price_down,4e980425468708da,Delivering the Truth (Quaker Midwife Mystery #1),Mystery,GBP,20.89,18.73,-2.16,-10.3,yes,yes,7,7,yes,https://books.toscrape.com/catalogue/delivering-the-truth-quaker-midwife-mystery-1_464/index.html
+price_down,52cf2a5933ec5d8f,The Marriage of Opposites,Historical Fiction,GBP,28.08,27.56,-0.52,-1.9,yes,yes,14,14,no,https://books.toscrape.com/catalogue/the-marriage-of-opposites_759/index.html
+price_down,90fa61229261140a,Tipping the Velvet,Historical Fiction,GBP,53.74,52.83,-0.91,-1.7,yes,yes,20,20,no,https://books.toscrape.com/catalogue/tipping-the-velvet_999/index.html
+price_down,bddc6fd036eb6279,Hide Away (Eve Duncan #20),Mystery,GBP,11.84,11.66,-0.18,-1.5,yes,yes,12,12,no,https://books.toscrape.com/catalogue/hide-away-eve-duncan-20_620/index.html
+price_up,b4fd5943413e089a,Slow States of Collapse: Poems,Poetry,GBP,57.31,70.04,12.73,22.2,yes,yes,17,17,yes,https://books.toscrape.com/catalogue/slow-states-of-collapse-poems_960/index.html
+price_up,155e42df837ee5ff,Between Shades of Gray,Historical Fiction,GBP,20.79,24.83,4.04,19.4,yes,yes,3,3,yes,https://books.toscrape.com/catalogue/between-shades-of-gray_128/index.html
+price_up,4280ac3eab57aa5d,The Girl You Lost,Mystery,GBP,12.29,14.48,2.19,17.8,yes,yes,1,1,yes,https://books.toscrape.com/catalogue/the-girl-you-lost_66/index.html
+price_up,3d250ab0f12be445,The Collected Poems of W.B. Yeats (The Collected Works of W.B. Yeats #1),Poetry,GBP,15.42,17.49,2.07,13.4,yes,yes,6,6,yes,https://books.toscrape.com/catalogue/the-collected-poems-of-wb-yeats-the-collected-works-of-wb-yeats-1_441/index.html
+price_up,a94350ee74deaa07,Under the Tuscan Sun,Travel,GBP,37.33,42.05,4.72,12.6,yes,yes,7,7,yes,https://books.toscrape.com/catalogue/under-the-tuscan-sun_504/index.html
+price_up,36d5884d44484277,Dune (Dune #1),Science Fiction,GBP,54.86,56.72,1.86,3.4,yes,yes,3,3,no,https://books.toscrape.com/catalogue/dune-dune-1_151/index.html
+price_up,cfeb1e1e0e695b58,Night Sky with Exit Wounds,Poetry,GBP,41.05,42.33,1.28,3.1,yes,yes,15,15,no,https://books.toscrape.com/catalogue/night-sky-with-exit-wounds_822/index.html
+price_up,38f776ab9118aed7,The Secret Healer,Historical Fiction,GBP,34.56,35.63,1.07,3.1,yes,yes,1,1,no,https://books.toscrape.com/catalogue/the-secret-healer_80/index.html
+out_of_stock,b54d7416bb445989,Booked,Poetry,GBP,17.49,17.49,,,yes,no,5,0,yes,https://books.toscrape.com/catalogue/booked_365/index.html
+out_of_stock,2a9fcb3382d351c8,How to Cook Everything Vegetarian: Simple Meatless Recipes for Great Food (How to Cook Everything),Food and Drink,GBP,46.01,46.01,,,yes,no,7,0,yes,https://books.toscrape.com/catalogue/how-to-cook-everything-vegetarian-simple-meatless-recipes-for-great-food-how-to-cook-everything_471/index.html
+out_of_stock,bade9943ee01b63f,Lilac Girls,Historical Fiction,GBP,17.28,17.28,,,yes,no,11,0,yes,https://books.toscrape.com/catalogue/lilac-girls_597/index.html
+out_of_stock,f435aa99d864077d,Sleeping Giants (Themis Files #1),Science Fiction,GBP,48.74,48.74,,,yes,no,11,0,yes,https://books.toscrape.com/catalogue/sleeping-giants-themis-files-1_604/index.html
+removed,228ba5e7577e1d49,"1,000 Places to See Before You Die",Travel,GBP,26.08,,,,yes,,1,,no,https://books.toscrape.com/catalogue/1000-places-to-see-before-you-die_1/index.html
+removed,05a61a3bd8ca4149,Playing with Fire,Mystery,GBP,13.71,,,,yes,,11,,no,https://books.toscrape.com/catalogue/playing-with-fire_602/index.html

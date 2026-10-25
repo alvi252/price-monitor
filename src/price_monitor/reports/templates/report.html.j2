@@ -1,0 +1,309 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="generator" content="price-monitor {{ version }}">
+<title>Price Monitor report · run #{{ diff.current.id }}</title>
+<style>
+:root {
+  color-scheme: light;
+  --bg: #f5f6f8;
+  --surface: #ffffff;
+  --surface-2: #f9fafb;
+  --border: #e5e7eb;
+  --text: #111827;
+  --text-2: #4b5563;
+  --muted: #6b7280;
+  --grid: #e7e7e2;
+  --axis: #b9b8ae;
+  --accent: #2a78d6;
+  --up: #e34948;   --up-ink: #b42318;   --up-tint: #fde2e1;
+  --down: #2a78d6; --down-ink: #1c5cab; --down-tint: #dceafb;
+  --out: #d99100;  --out-ink: #8a5a00;  --out-tint: #fff1d6;
+  --back: #1f9d55; --back-ink: #1e6b35; --back-tint: #ddf3e4;
+  --new: #6250d6;  --new-ink: #4a3aa7;  --new-tint: #ece9fb;
+  --removed: #898781; --removed-ink: #52514e; --removed-tint: #eeeeec;
+  --alert: #b42318;
+  --shadow: 0 1px 2px rgba(16, 24, 40, .04), 0 1px 3px rgba(16, 24, 40, .06);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --bg: #0f1115; --surface: #171a20; --surface-2: #1c2027; --border: #2a2f38;
+    --text: #f0efec; --text-2: #c3c2b7; --muted: #9a998f; --grid: #2c2c2a; --axis: #4a4a45;
+    --accent: #3987e5;
+    --up: #e66767;   --up-ink: #ff9b93;   --up-tint: rgba(230, 103, 103, .16);
+    --down: #3987e5; --down-ink: #8cbcf5; --down-tint: rgba(57, 135, 229, .18);
+    --out: #c98500;  --out-ink: #f2c46b;  --out-tint: rgba(201, 133, 0, .18);
+    --back: #2fb36a; --back-ink: #8be0ae; --back-tint: rgba(47, 179, 106, .16);
+    --new: #9085e9;  --new-ink: #c3bcf6;  --new-tint: rgba(144, 133, 233, .18);
+    --removed: #898781; --removed-ink: #c3c2b7; --removed-tint: rgba(137, 135, 129, .18);
+    --alert: #ff9b93;
+    --shadow: none;
+  }
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font: 15px/1.5 Inter, "Segoe UI", Roboto, Lato, "Helvetica Neue", Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+a { color: inherit; }
+.topbar {
+  display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  padding: 14px 32px; background: var(--surface); border-bottom: 1px solid var(--border);
+}
+.brand { display: flex; align-items: center; gap: 10px; font-weight: 700; letter-spacing: -.01em; }
+.brand svg { width: 26px; height: 26px; }
+.topbar .meta { color: var(--muted); font-size: 13px; }
+.wrap { max-width: 1180px; margin: 0 auto; padding: 32px 32px 48px; }
+.eyebrow { margin: 0 0 6px; color: var(--accent); font-size: 13px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; }
+h1 { margin: 0; font-size: 30px; line-height: 1.2; letter-spacing: -.02em; }
+.runs { margin: 10px 0 0; color: var(--text-2); display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.run-pill { display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; border-radius: 999px; background: var(--surface); border: 1px solid var(--border); font-size: 13px; }
+.run-pill b { font-weight: 600; color: var(--text); }
+.tag { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; padding: 1px 6px; border-radius: 4px; background: var(--surface-2); color: var(--muted); }
+.tag.sim { background: var(--out-tint); color: var(--out-ink); }
+.notice {
+  margin: 24px 0 0; padding: 12px 16px; border-radius: 10px;
+  background: var(--out-tint); color: var(--out-ink); border: 1px solid color-mix(in srgb, var(--out) 35%, transparent);
+  font-size: 14px;
+}
+.notice code { font-family: "DejaVu Sans Mono", ui-monospace, monospace; font-size: 13px; }
+.tiles { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; margin: 24px 0 0; }
+.tile { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 16px 18px; box-shadow: var(--shadow); }
+.tile .label { display: flex; align-items: center; gap: 8px; color: var(--text-2); font-size: 13px; font-weight: 500; }
+.tile .value { margin-top: 6px; font-size: 30px; font-weight: 650; letter-spacing: -.02em; line-height: 1.1; }
+.tile .hint { margin-top: 4px; color: var(--muted); font-size: 12.5px; }
+.tile.zero .value { color: var(--muted); }
+.dot { width: 10px; height: 10px; border-radius: 3px; flex: none; background: var(--axis); }
+.dot.up { background: var(--up); } .dot.down { background: var(--down); }
+.dot.out { background: var(--out); } .dot.back { background: var(--back); }
+.dot.new { background: var(--new); } .dot.removed { background: var(--removed); }
+.dot.alert { background: var(--alert); border-radius: 50%; }
+.card { margin: 24px 0 0; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; box-shadow: var(--shadow); overflow: hidden; }
+.card-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; flex-wrap: wrap; padding: 18px 22px 12px; }
+.card-head h2 { margin: 0; font-size: 17px; letter-spacing: -.01em; }
+.card-head p { margin: 2px 0 0; color: var(--muted); font-size: 13px; }
+.legend { display: flex; gap: 16px; flex-wrap: wrap; color: var(--text-2); font-size: 13px; }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.legend .faded { opacity: .4; }
+.legend .thr { width: 14px; height: 0; border-top: 2px dashed var(--muted); }
+.chart-box { padding: 4px 22px 18px; }
+.chart { display: block; font-family: inherit; }
+.chart .grid { stroke: var(--grid); stroke-width: 1; }
+.chart .axis-zero { stroke: var(--axis); stroke-width: 1.5; }
+.chart .threshold { stroke: var(--muted); stroke-width: 1.2; stroke-dasharray: 4 4; opacity: .8; }
+.chart .tick { fill: var(--muted); font-size: 12px; text-anchor: middle; font-variant-numeric: tabular-nums; }
+.chart .label { fill: var(--text-2); font-size: 13px; text-anchor: end; dominant-baseline: central; }
+.chart .value { fill: var(--text); font-size: 12.5px; font-weight: 600; dominant-baseline: central; font-variant-numeric: tabular-nums; paint-order: stroke; stroke: var(--surface); stroke-width: 5px; stroke-linejoin: round; }
+.chart .row:hover .value { stroke: var(--surface-2); }
+.chart .bar-up { fill: var(--up); } .chart .bar-down { fill: var(--down); }
+.chart .bar.below { opacity: .4; }
+.chart .hit { fill: transparent; }
+.chart .row:hover .hit { fill: var(--surface-2); }
+.chart .row:hover .label { fill: var(--text); }
+.empty { padding: 8px 22px 22px; color: var(--muted); }
+table { width: 100%; border-collapse: collapse; font-size: 14px; }
+thead th {
+  text-align: left; font-size: 12px; font-weight: 600; color: var(--muted);
+  text-transform: uppercase; letter-spacing: .04em; padding: 10px 14px;
+  background: var(--surface-2); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+tbody td { padding: 10px 14px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+tbody tr:last-child td { border-bottom: 0; }
+tbody tr:hover td { background: var(--surface-2); }
+th:first-child, td:first-child { padding-left: 22px; }
+th:last-child, td:last-child { padding-right: 22px; }
+.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.badge { display: inline-flex; align-items: center; gap: 6px; padding: 2px 9px; border-radius: 999px; font-size: 12.5px; font-weight: 600; white-space: nowrap; }
+.badge.up { background: var(--up-tint); color: var(--up-ink); }
+.badge.down { background: var(--down-tint); color: var(--down-ink); }
+.badge.out { background: var(--out-tint); color: var(--out-ink); }
+.badge.back { background: var(--back-tint); color: var(--back-ink); }
+.badge.new { background: var(--new-tint); color: var(--new-ink); }
+.badge.removed { background: var(--removed-tint); color: var(--removed-ink); }
+.product a { text-decoration: none; font-weight: 500; }
+.product a:hover { text-decoration: underline; }
+.product .cat { display: block; color: var(--muted); font-size: 12.5px; }
+.delta.up { color: var(--up-ink); font-weight: 600; }
+.delta.down { color: var(--down-ink); font-weight: 600; }
+.stock { color: var(--text-2); white-space: nowrap; font-size: 13.5px; }
+.stock .arrow { color: var(--muted); padding: 0 4px; }
+.stock .oos { color: var(--out-ink); font-weight: 600; }
+.alert-flag { display: inline-flex; align-items: center; gap: 6px; color: var(--alert); font-weight: 600; font-size: 13px; }
+.alert-flag::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+.quiet { color: var(--muted); font-size: 13px; }
+.rating { letter-spacing: 1px; color: var(--out); }
+.rating .off { color: var(--grid); }
+footer { margin-top: 28px; color: var(--muted); font-size: 13px; display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+@media (max-width: 900px) {
+  .tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .wrap { padding: 24px 16px 40px; }
+  .topbar { padding: 12px 16px; }
+  .table-scroll, .chart-box { overflow-x: auto; }
+  .chart { min-width: 680px; }
+  .topbar .meta { display: none; }
+}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">
+    <svg viewBox="0 0 26 26" aria-hidden="true"><rect width="26" height="26" rx="7" fill="#1f2937"/><path d="M6 17.5l4.5-4.5 3.5 3.5L20 10" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="20" cy="10" r="2" fill="#e34948"/></svg>
+    Price Monitor
+  </div>
+  <div class="meta">Generated {{ generated_at }} · price-monitor v{{ version }}</div>
+</header>
+
+<main class="wrap">
+  <section>
+    <p class="eyebrow">Competitor report · {{ site_url | replace("https://", "") | trim("/") }}</p>
+    <h1>Price &amp; stock changes</h1>
+    <div class="runs">
+      {% macro run_pill(run) %}
+        <span class="run-pill"><b>Run #{{ run.id }}</b> {{ run.finished_at.strftime("%d %b %Y, %H:%M") }} UTC
+          {% if run.is_simulated %}<span class="tag sim">simulated</span>{% else %}<span class="tag">real crawl</span>{% endif %}
+        </span>
+      {% endmacro %}
+      {% if diff.previous %}{{ run_pill(diff.previous) }} <span aria-hidden="true">→</span>{% endif %}
+      {{ run_pill(diff.current) }}
+    </div>
+  </section>
+
+  {% if diff.current.is_simulated %}
+  <div class="notice" role="note">
+    <strong>Demo data.</strong> The current run was created with <code>price-monitor demo-snapshot</code>:
+    it copies the real crawl of run #{{ diff.previous.id if diff.previous else "?" }} and applies seeded, simulated
+    price and stock changes, because the sandbox shop never changes its prices. Products, prices before the
+    change and URLs are real.
+  </div>
+  {% endif %}
+
+  <section class="tiles" aria-label="Summary">
+    {% for t in tiles %}
+    <div class="tile{% if t.value in ('0', '0 / 0') %} zero{% endif %}">
+      <div class="label"><span class="dot {{ t.tone }}"></span>{{ t.label }}</div>
+      <div class="value">{{ t.value }}</div>
+      <div class="hint">{{ t.hint }}</div>
+    </div>
+    {% endfor %}
+  </section>
+
+  {% if diff.previous %}
+  <section class="card">
+    <div class="card-head">
+      <div>
+        <h2>Price changes vs previous run</h2>
+        <p>{{ price_change_count }} product{{ "s" if price_change_count != 1 }} changed price{% if price_change_count > 20 %} · 20 largest moves shown{% endif %}</p>
+      </div>
+      <div class="legend">
+        <span><span class="dot up"></span>Increase</span>
+        <span><span class="dot down"></span>Decrease</span>
+        <span><span class="dot faded" style="background: var(--text-2)"></span>Below alert threshold</span>
+        <span><span class="thr"></span>Alert threshold ±{{ diff.threshold_pct }}%</span>
+      </div>
+    </div>
+    {% if chart_svg %}
+    <div class="chart-box">{{ chart_svg | safe }}</div>
+    {% else %}
+    <p class="empty">No price changes between these runs.</p>
+    {% endif %}
+  </section>
+
+  <section class="card">
+    <div class="card-head">
+      <div>
+        <h2>All detected changes</h2>
+        <p>{{ rows | length }} change{{ "s" if rows | length != 1 }} · {{ diff.summary.alerts }} alert{{ "s" if diff.summary.alerts != 1 }}</p>
+      </div>
+    </div>
+    {% if rows %}
+    <div class="table-scroll">
+    <table>
+      <thead>
+        <tr>
+          <th>Change</th><th>Product</th><th class="num">Was</th><th class="num">Now</th>
+          <th class="num">Change</th><th class="num">%</th><th>Stock</th><th>Alert</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in rows %}
+        <tr>
+          <td><span class="badge {{ r.tone }}">{{ r.label }}</span></td>
+          <td class="product"><a href="{{ r.url }}" target="_blank" rel="noopener">{{ r.name }}</a><span class="cat">{{ r.category }}</span></td>
+          <td class="num">{{ r.old_price }}</td>
+          <td class="num">{{ r.new_price }}</td>
+          <td class="num delta {{ r.direction }}">{{ r.delta if r.is_price_change else "" }}</td>
+          <td class="num delta {{ r.direction }}">{{ r.delta_pct if r.is_price_change else "" }}</td>
+          <td class="stock">
+            {% if r.stock_before != r.stock_now and r.stock_before != "-" and r.stock_now != "-" %}
+              {{ r.stock_before }}<span class="arrow">→</span><span class="{{ 'oos' if r.stock_now == 'Out of stock' }}">{{ r.stock_now }}</span>
+            {% elif r.stock_now != "-" %}
+              <span class="{{ 'oos' if r.stock_now == 'Out of stock' }}">{{ r.stock_now }}</span>
+            {% else %}
+              {{ r.stock_before }}
+            {% endif %}
+          </td>
+          <td>{% if r.is_alert %}<span class="alert-flag">Alert</span>{% else %}<span class="quiet">-</span>{% endif %}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    </div>
+    {% else %}
+    <p class="empty">No changes between run #{{ diff.previous.id }} and run #{{ diff.current.id }}.</p>
+    {% endif %}
+  </section>
+  {% else %}
+  <section class="card">
+    <div class="card-head"><div><h2>No baseline yet</h2><p>This is the first stored run. Run the monitor again later to detect price and stock changes.</p></div></div>
+  </section>
+  {% endif %}
+
+  <section class="card">
+    <div class="card-head">
+      <div>
+        <h2>Catalogue overview</h2>
+        <p>Latest snapshot (run #{{ diff.current.id }}) by category · full product list in the Excel and CSV exports</p>
+      </div>
+    </div>
+    <div class="table-scroll">
+    <table>
+      <thead>
+        <tr><th>Category</th><th class="num">Products</th><th class="num">In stock</th><th class="num">Avg price</th><th class="num">Min</th><th class="num">Max</th><th>Avg rating</th></tr>
+      </thead>
+      <tbody>
+        {% for c in categories %}
+        <tr>
+          <td>{{ c.name }}</td>
+          <td class="num">{{ c.products }}</td>
+          <td class="num">{{ c.in_stock }}</td>
+          <td class="num">{{ c.avg_price | money(currency) }}</td>
+          <td class="num">{{ c.min_price | money(currency) }}</td>
+          <td class="num">{{ c.max_price | money(currency) }}</td>
+          <td>
+            {% if c.avg_rating is not none %}
+            {% set full = c.avg_rating | round(0, 'common') | int %}
+            <span class="rating" aria-label="{{ c.avg_rating }} of 5">{{ "★" * full }}<span class="off">{{ "★" * (5 - full) }}</span></span>
+            <span class="quiet">{{ c.avg_rating }}</span>
+            {% else %}<span class="quiet">-</span>{% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    </div>
+  </section>
+
+  <footer>
+    <span>Source: <a href="{{ site_url }}">{{ site_url }}</a> - a public sandbox shop built for scraping practice. Prices in {{ currency }}.</span>
+    <span>Alert threshold: {{ diff.threshold_pct }}% price change</span>
+  </footer>
+</main>
+</body>
+</html>

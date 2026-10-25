@@ -1,0 +1,17 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+.venv/
+.pytest_cache/
+.ruff_cache/
+
+# Runtime data and generated reports (see examples/ for committed samples)
+/data/
+/reports/
+*.db
+
+# Local configuration
+.env

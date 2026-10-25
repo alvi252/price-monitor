@@ -1,0 +1,46 @@
+Scraping 6 categories from https://books.toscrape.com/ (concurrency 4, delay 0.25s, timeout 15.0s, 3 retries)
+Product pages ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 134/134 0:00:14
+
+Crawled categories
+
+  Category             Products
+ ───────────────────────────────
+  Mystery                    32
+  Historical Fiction         26
+  Science Fiction            16
+  Poetry                     19
+  Food and Drink             30
+  Travel                     11
+  Total (unique)            134
+
+Saved run #1 (2026-10-25 13:44 UTC, real crawl): 134 products in 14.9s (144 requests, 0 retries)
+Simulated run #2 (2026-10-25 13:44 UTC, simulated) from run #1, seed 42:
+  8 price increases, 8 price decreases, 4 sold out, 0 restocked, 2 removed
+
+Changes run #1 (2026-10-25 13:44 UTC, real crawl) -> run #2 (2026-10-25 13:44 UTC, simulated)
+132 products | 8 price down | 8 price up | 4 out of stock | 2 removed | 14 alert(s) at >= 5%
+telegram: skipped (PM_TELEGRAM_BOT_TOKEN / PM_TELEGRAM_CHAT_ID not set)
+Alerts: 14 (price moves >= 5% and stock changes)
+
+  Change         Product                                        Category                 Was       Now        %   Stock
+ ───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+  Price down     Girl With a Pearl Earring                      Historical Fiction    £26.77    £20.10   -24.9%
+  Price down     Vagabonding: An Uncommon Guide to the Art o…   Travel                £36.94    £27.92   -24.4%
+  Price down     The Road to Little Dribbling: Adventures of…   Travel                £23.21    £18.37   -20.9%
+  Price down     Quarter Life Poetry: Poems for the Young, B…   Poetry                £50.89    £41.41   -18.6%
+  Price down     Delivering the Truth (Quaker Midwife Myster…   Mystery               £20.89    £18.73   -10.3%
+  Price up       Slow States of Collapse: Poems                 Poetry                £57.31    £70.04   +22.2%
+  Price up       Between Shades of Gray                         Historical Fiction    £20.79    £24.83   +19.4%
+  Price up       The Girl You Lost                              Mystery               £12.29    £14.48   +17.8%
+  Price up       The Collected Poems of W.B. Yeats (The Coll…   Poetry                £15.42    £17.49   +13.4%
+  Price up       Under the Tuscan Sun                           Travel                £37.33    £42.05   +12.6%
+  Out of stock   Booked                                         Poetry                £17.49    £17.49            5 pcs -> sold out
+  Out of stock   How to Cook Everything Vegetarian: Simple M…   Food and Drink        £46.01    £46.01            7 pcs -> sold out
+  Out of stock   Lilac Girls                                    Historical Fiction    £17.28    £17.28            11 pcs -> sold out
+  Out of stock   Sleeping Giants (Themis Files #1)              Science Fiction       £48.74    £48.74            11 pcs -> sold out
+
+Reports
+  + reports/showcase/price-report-run1-vs-run2.html
+  + reports/showcase/price-report-run1-vs-run2.xlsx
+  + reports/showcase/price-report-run1-vs-run2-snapshot.csv
+  + reports/showcase/price-report-run1-vs-run2-changes.csv

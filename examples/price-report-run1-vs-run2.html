@@ -1,0 +1,623 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="generator" content="price-monitor 0.1.0">
+<title>Price Monitor report · run #2</title>
+<style>
+:root {
+  color-scheme: light;
+  --bg: #f5f6f8;
+  --surface: #ffffff;
+  --surface-2: #f9fafb;
+  --border: #e5e7eb;
+  --text: #111827;
+  --text-2: #4b5563;
+  --muted: #6b7280;
+  --grid: #e7e7e2;
+  --axis: #b9b8ae;
+  --accent: #2a78d6;
+  --up: #e34948;   --up-ink: #b42318;   --up-tint: #fde2e1;
+  --down: #2a78d6; --down-ink: #1c5cab; --down-tint: #dceafb;
+  --out: #d99100;  --out-ink: #8a5a00;  --out-tint: #fff1d6;
+  --back: #1f9d55; --back-ink: #1e6b35; --back-tint: #ddf3e4;
+  --new: #6250d6;  --new-ink: #4a3aa7;  --new-tint: #ece9fb;
+  --removed: #898781; --removed-ink: #52514e; --removed-tint: #eeeeec;
+  --alert: #b42318;
+  --shadow: 0 1px 2px rgba(16, 24, 40, .04), 0 1px 3px rgba(16, 24, 40, .06);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --bg: #0f1115; --surface: #171a20; --surface-2: #1c2027; --border: #2a2f38;
+    --text: #f0efec; --text-2: #c3c2b7; --muted: #9a998f; --grid: #2c2c2a; --axis: #4a4a45;
+    --accent: #3987e5;
+    --up: #e66767;   --up-ink: #ff9b93;   --up-tint: rgba(230, 103, 103, .16);
+    --down: #3987e5; --down-ink: #8cbcf5; --down-tint: rgba(57, 135, 229, .18);
+    --out: #c98500;  --out-ink: #f2c46b;  --out-tint: rgba(201, 133, 0, .18);
+    --back: #2fb36a; --back-ink: #8be0ae; --back-tint: rgba(47, 179, 106, .16);
+    --new: #9085e9;  --new-ink: #c3bcf6;  --new-tint: rgba(144, 133, 233, .18);
+    --removed: #898781; --removed-ink: #c3c2b7; --removed-tint: rgba(137, 135, 129, .18);
+    --alert: #ff9b93;
+    --shadow: none;
+  }
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font: 15px/1.5 Inter, "Segoe UI", Roboto, Lato, "Helvetica Neue", Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+a { color: inherit; }
+.topbar {
+  display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  padding: 14px 32px; background: var(--surface); border-bottom: 1px solid var(--border);
+}
+.brand { display: flex; align-items: center; gap: 10px; font-weight: 700; letter-spacing: -.01em; }
+.brand svg { width: 26px; height: 26px; }
+.topbar .meta { color: var(--muted); font-size: 13px; }
+.wrap { max-width: 1180px; margin: 0 auto; padding: 32px 32px 48px; }
+.eyebrow { margin: 0 0 6px; color: var(--accent); font-size: 13px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; }
+h1 { margin: 0; font-size: 30px; line-height: 1.2; letter-spacing: -.02em; }
+.runs { margin: 10px 0 0; color: var(--text-2); display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.run-pill { display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; border-radius: 999px; background: var(--surface); border: 1px solid var(--border); font-size: 13px; }
+.run-pill b { font-weight: 600; color: var(--text); }
+.tag { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; padding: 1px 6px; border-radius: 4px; background: var(--surface-2); color: var(--muted); }
+.tag.sim { background: var(--out-tint); color: var(--out-ink); }
+.notice {
+  margin: 24px 0 0; padding: 12px 16px; border-radius: 10px;
+  background: var(--out-tint); color: var(--out-ink); border: 1px solid color-mix(in srgb, var(--out) 35%, transparent);
+  font-size: 14px;
+}
+.notice code { font-family: "DejaVu Sans Mono", ui-monospace, monospace; font-size: 13px; }
+.tiles { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; margin: 24px 0 0; }
+.tile { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 16px 18px; box-shadow: var(--shadow); }
+.tile .label { display: flex; align-items: center; gap: 8px; color: var(--text-2); font-size: 13px; font-weight: 500; }
+.tile .value { margin-top: 6px; font-size: 30px; font-weight: 650; letter-spacing: -.02em; line-height: 1.1; }
+.tile .hint { margin-top: 4px; color: var(--muted); font-size: 12.5px; }
+.tile.zero .value { color: var(--muted); }
+.dot { width: 10px; height: 10px; border-radius: 3px; flex: none; background: var(--axis); }
+.dot.up { background: var(--up); } .dot.down { background: var(--down); }
+.dot.out { background: var(--out); } .dot.back { background: var(--back); }
+.dot.new { background: var(--new); } .dot.removed { background: var(--removed); }
+.dot.alert { background: var(--alert); border-radius: 50%; }
+.card { margin: 24px 0 0; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; box-shadow: var(--shadow); overflow: hidden; }
+.card-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; flex-wrap: wrap; padding: 18px 22px 12px; }
+.card-head h2 { margin: 0; font-size: 17px; letter-spacing: -.01em; }
+.card-head p { margin: 2px 0 0; color: var(--muted); font-size: 13px; }
+.legend { display: flex; gap: 16px; flex-wrap: wrap; color: var(--text-2); font-size: 13px; }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.legend .faded { opacity: .4; }
+.legend .thr { width: 14px; height: 0; border-top: 2px dashed var(--muted); }
+.chart-box { padding: 4px 22px 18px; }
+.chart { display: block; font-family: inherit; }
+.chart .grid { stroke: var(--grid); stroke-width: 1; }
+.chart .axis-zero { stroke: var(--axis); stroke-width: 1.5; }
+.chart .threshold { stroke: var(--muted); stroke-width: 1.2; stroke-dasharray: 4 4; opacity: .8; }
+.chart .tick { fill: var(--muted); font-size: 12px; text-anchor: middle; font-variant-numeric: tabular-nums; }
+.chart .label { fill: var(--text-2); font-size: 13px; text-anchor: end; dominant-baseline: central; }
+.chart .value { fill: var(--text); font-size: 12.5px; font-weight: 600; dominant-baseline: central; font-variant-numeric: tabular-nums; paint-order: stroke; stroke: var(--surface); stroke-width: 5px; stroke-linejoin: round; }
+.chart .row:hover .value { stroke: var(--surface-2); }
+.chart .bar-up { fill: var(--up); } .chart .bar-down { fill: var(--down); }
+.chart .bar.below { opacity: .4; }
+.chart .hit { fill: transparent; }
+.chart .row:hover .hit { fill: var(--surface-2); }
+.chart .row:hover .label { fill: var(--text); }
+.empty { padding: 8px 22px 22px; color: var(--muted); }
+table { width: 100%; border-collapse: collapse; font-size: 14px; }
+thead th {
+  text-align: left; font-size: 12px; font-weight: 600; color: var(--muted);
+  text-transform: uppercase; letter-spacing: .04em; padding: 10px 14px;
+  background: var(--surface-2); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+tbody td { padding: 10px 14px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+tbody tr:last-child td { border-bottom: 0; }
+tbody tr:hover td { background: var(--surface-2); }
+th:first-child, td:first-child { padding-left: 22px; }
+th:last-child, td:last-child { padding-right: 22px; }
+.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.badge { display: inline-flex; align-items: center; gap: 6px; padding: 2px 9px; border-radius: 999px; font-size: 12.5px; font-weight: 600; white-space: nowrap; }
+.badge.up { background: var(--up-tint); color: var(--up-ink); }
+.badge.down { background: var(--down-tint); color: var(--down-ink); }
+.badge.out { background: var(--out-tint); color: var(--out-ink); }
+.badge.back { background: var(--back-tint); color: var(--back-ink); }
+.badge.new { background: var(--new-tint); color: var(--new-ink); }
+.badge.removed { background: var(--removed-tint); color: var(--removed-ink); }
+.product a { text-decoration: none; font-weight: 500; }
+.product a:hover { text-decoration: underline; }
+.product .cat { display: block; color: var(--muted); font-size: 12.5px; }
+.delta.up { color: var(--up-ink); font-weight: 600; }
+.delta.down { color: var(--down-ink); font-weight: 600; }
+.stock { color: var(--text-2); white-space: nowrap; font-size: 13.5px; }
+.stock .arrow { color: var(--muted); padding: 0 4px; }
+.stock .oos { color: var(--out-ink); font-weight: 600; }
+.alert-flag { display: inline-flex; align-items: center; gap: 6px; color: var(--alert); font-weight: 600; font-size: 13px; }
+.alert-flag::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+.quiet { color: var(--muted); font-size: 13px; }
+.rating { letter-spacing: 1px; color: var(--out); }
+.rating .off { color: var(--grid); }
+footer { margin-top: 28px; color: var(--muted); font-size: 13px; display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+@media (max-width: 900px) {
+  .tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .wrap { padding: 24px 16px 40px; }
+  .topbar { padding: 12px 16px; }
+  .table-scroll, .chart-box { overflow-x: auto; }
+  .chart { min-width: 680px; }
+  .topbar .meta { display: none; }
+}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">
+    <svg viewBox="0 0 26 26" aria-hidden="true"><rect width="26" height="26" rx="7" fill="#1f2937"/><path d="M6 17.5l4.5-4.5 3.5 3.5L20 10" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="20" cy="10" r="2" fill="#e34948"/></svg>
+    Price Monitor
+  </div>
+  <div class="meta">Generated 25 Oct 2026, 13:48 UTC · price-monitor v0.1.0</div>
+</header>
+
+<main class="wrap">
+  <section>
+    <p class="eyebrow">Competitor report · books.toscrape.com</p>
+    <h1>Price &amp; stock changes</h1>
+    <div class="runs">
+        <span class="run-pill"><b>Run #1</b> 25 Oct 2026, 13:44 UTC
+<span class="tag">real crawl</span>        </span>
+ <span aria-hidden="true">→</span>              <span class="run-pill"><b>Run #2</b> 25 Oct 2026, 13:44 UTC
+<span class="tag sim">simulated</span>        </span>
+
+    </div>
+  </section>
+
+  <div class="notice" role="note">
+    <strong>Demo data.</strong> The current run was created with <code>price-monitor demo-snapshot</code>:
+    it copies the real crawl of run #1 and applies seeded, simulated
+    price and stock changes, because the sandbox shop never changes its prices. Products, prices before the
+    change and URLs are real.
+  </div>
+
+  <section class="tiles" aria-label="Summary">
+    <div class="tile">
+      <div class="label"><span class="dot neutral"></span>Products tracked</div>
+      <div class="value">132</div>
+      <div class="hint">128 in stock</div>
+    </div>
+    <div class="tile">
+      <div class="label"><span class="dot up"></span>Price increases</div>
+      <div class="value">8</div>
+      <div class="hint">vs previous run</div>
+    </div>
+    <div class="tile">
+      <div class="label"><span class="dot down"></span>Price decreases</div>
+      <div class="value">8</div>
+      <div class="hint">vs previous run</div>
+    </div>
+    <div class="tile">
+      <div class="label"><span class="dot alert"></span>Alerts</div>
+      <div class="value">14</div>
+      <div class="hint">price moves ≥ 5% and stock changes</div>
+    </div>
+    <div class="tile">
+      <div class="label"><span class="dot out"></span>Went out of stock</div>
+      <div class="value">4</div>
+      <div class="hint">were available</div>
+    </div>
+    <div class="tile zero">
+      <div class="label"><span class="dot back"></span>Back in stock</div>
+      <div class="value">0</div>
+      <div class="hint">were sold out</div>
+    </div>
+    <div class="tile">
+      <div class="label"><span class="dot new"></span>New / removed</div>
+      <div class="value">0 / 2</div>
+      <div class="hint">products listed / delisted</div>
+    </div>
+    <div class="tile">
+      <div class="label"><span class="dot neutral"></span>Average price move</div>
+      <div class="value">-0.6%</div>
+      <div class="hint">across changed prices</div>
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="card-head">
+      <div>
+        <h2>Price changes vs previous run</h2>
+        <p>16 products changed price</p>
+      </div>
+      <div class="legend">
+        <span><span class="dot up"></span>Increase</span>
+        <span><span class="dot down"></span>Decrease</span>
+        <span><span class="dot faded" style="background: var(--text-2)"></span>Below alert threshold</span>
+        <span><span class="thr"></span>Alert threshold ±5%</span>
+      </div>
+    </div>
+    <div class="chart-box"><svg class="chart" viewBox="0 0 1040 494" width="100%" role="img" aria-label="Price change in percent for 16 products" xmlns="http://www.w3.org/2000/svg"><line class="grid" x1="364.0" x2="364.0" y1="28" y2="482"/><text class="tick" x="364.0" y="22">-25%</text><line class="grid" x1="425.2" x2="425.2" y1="28" y2="482"/><text class="tick" x="425.2" y="22">-20%</text><line class="grid" x1="486.4" x2="486.4" y1="28" y2="482"/><text class="tick" x="486.4" y="22">-15%</text><line class="grid" x1="547.6" x2="547.6" y1="28" y2="482"/><text class="tick" x="547.6" y="22">-10%</text><line class="grid" x1="608.8" x2="608.8" y1="28" y2="482"/><text class="tick" x="608.8" y="22">-5%</text><line class="axis-zero" x1="670.0" x2="670.0" y1="28" y2="482"/><text class="tick" x="670.0" y="22">0%</text><line class="grid" x1="731.2" x2="731.2" y1="28" y2="482"/><text class="tick" x="731.2" y="22">+5%</text><line class="grid" x1="792.4" x2="792.4" y1="28" y2="482"/><text class="tick" x="792.4" y="22">+10%</text><line class="grid" x1="853.6" x2="853.6" y1="28" y2="482"/><text class="tick" x="853.6" y="22">+15%</text><line class="grid" x1="914.8" x2="914.8" y1="28" y2="482"/><text class="tick" x="914.8" y="22">+20%</text><line class="grid" x1="976.0" x2="976.0" y1="28" y2="482"/><text class="tick" x="976.0" y="22">+25%</text><line class="threshold" x1="608.8" x2="608.8" y1="32" y2="482"/><line class="threshold" x1="731.2" x2="731.2" y1="32" y2="482"/><g class="row"><title>Slow States of Collapse: Poems: £57.31 → £70.04 (+22.2%)</title><rect class="hit" x="0" y="34" width="1040" height="28"/><text class="label" x="300" y="48.0">Slow States of Collapse: Poems</text><path class="bar bar-up" d="M670.0,41.0 H937.7 A4,4 0 0 1 941.7,45.0 V51.0 A4,4 0 0 1 937.7,55.0 H670.0 Z"/><text class="value" x="947.7" y="48.0" text-anchor="start">+22.2%</text></g><g class="row"><title>Between Shades of Gray: £20.79 → £24.83 (+19.4%)</title><rect class="hit" x="0" y="62" width="1040" height="28"/><text class="label" x="300" y="76.0">Between Shades of Gray</text><path class="bar bar-up" d="M670.0,69.0 H903.5 A4,4 0 0 1 907.5,73.0 V79.0 A4,4 0 0 1 903.5,83.0 H670.0 Z"/><text class="value" x="913.5" y="76.0" text-anchor="start">+19.4%</text></g><g class="row"><title>The Girl You Lost: £12.29 → £14.48 (+17.8%)</title><rect class="hit" x="0" y="90" width="1040" height="28"/><text class="label" x="300" y="104.0">The Girl You Lost</text><path class="bar bar-up" d="M670.0,97.0 H883.9 A4,4 0 0 1 887.9,101.0 V107.0 A4,4 0 0 1 883.9,111.0 H670.0 Z"/><text class="value" x="893.9" y="104.0" text-anchor="start">+17.8%</text></g><g class="row"><title>The Collected Poems of W.B. Yeats (The Collected Works of W.B. Yeats #1): £15.42 → £17.49 (+13.4%)</title><rect class="hit" x="0" y="118" width="1040" height="28"/><text class="label" x="300" y="132.0">The Collected Poems of W.B. Yeats (The…</text><path class="bar bar-up" d="M670.0,125.0 H830.0 A4,4 0 0 1 834.0,129.0 V135.0 A4,4 0 0 1 830.0,139.0 H670.0 Z"/><text class="value" x="840.0" y="132.0" text-anchor="start">+13.4%</text></g><g class="row"><title>Under the Tuscan Sun: £37.33 → £42.05 (+12.6%)</title><rect class="hit" x="0" y="146" width="1040" height="28"/><text class="label" x="300" y="160.0">Under the Tuscan Sun</text><path class="bar bar-up" d="M670.0,153.0 H820.2 A4,4 0 0 1 824.2,157.0 V163.0 A4,4 0 0 1 820.2,167.0 H670.0 Z"/><text class="value" x="830.2" y="160.0" text-anchor="start">+12.6%</text></g><g class="row"><title>Dune (Dune #1): £54.86 → £56.72 (+3.4%) - below alert threshold</title><rect class="hit" x="0" y="174" width="1040" height="28"/><text class="label" x="300" y="188.0">Dune (Dune #1)</text><path class="bar bar-up below" d="M670.0,181.0 H707.6 A4,4 0 0 1 711.6,185.0 V191.0 A4,4 0 0 1 707.6,195.0 H670.0 Z"/><text class="value" x="717.6" y="188.0" text-anchor="start">+3.4%</text></g><g class="row"><title>Night Sky with Exit Wounds: £41.05 → £42.33 (+3.1%) - below alert threshold</title><rect class="hit" x="0" y="202" width="1040" height="28"/><text class="label" x="300" y="216.0">Night Sky with Exit Wounds</text><path class="bar bar-up below" d="M670.0,209.0 H703.9 A4,4 0 0 1 707.9,213.0 V219.0 A4,4 0 0 1 703.9,223.0 H670.0 Z"/><text class="value" x="713.9" y="216.0" text-anchor="start">+3.1%</text></g><g class="row"><title>The Secret Healer: £34.56 → £35.63 (+3.1%) - below alert threshold</title><rect class="hit" x="0" y="230" width="1040" height="28"/><text class="label" x="300" y="244.0">The Secret Healer</text><path class="bar bar-up below" d="M670.0,237.0 H703.9 A4,4 0 0 1 707.9,241.0 V247.0 A4,4 0 0 1 703.9,251.0 H670.0 Z"/><text class="value" x="713.9" y="244.0" text-anchor="start">+3.1%</text></g><g class="row"><title>Hide Away (Eve Duncan #20): £11.84 → £11.66 (-1.5%) - below alert threshold</title><rect class="hit" x="0" y="258" width="1040" height="28"/><text class="label" x="300" y="272.0">Hide Away (Eve Duncan #20)</text><path class="bar bar-down below" d="M670.0,265.0 H655.6 A4,4 0 0 0 651.6,269.0 V275.0 A4,4 0 0 0 655.6,279.0 H670.0 Z"/><text class="value" x="645.6" y="272.0" text-anchor="end">-1.5%</text></g><g class="row"><title>Tipping the Velvet: £53.74 → £52.83 (-1.7%) - below alert threshold</title><rect class="hit" x="0" y="286" width="1040" height="28"/><text class="label" x="300" y="300.0">Tipping the Velvet</text><path class="bar bar-down below" d="M670.0,293.0 H653.2 A4,4 0 0 0 649.2,297.0 V303.0 A4,4 0 0 0 653.2,307.0 H670.0 Z"/><text class="value" x="643.2" y="300.0" text-anchor="end">-1.7%</text></g><g class="row"><title>The Marriage of Opposites: £28.08 → £27.56 (-1.9%) - below alert threshold</title><rect class="hit" x="0" y="314" width="1040" height="28"/><text class="label" x="300" y="328.0">The Marriage of Opposites</text><path class="bar bar-down below" d="M670.0,321.0 H650.7 A4,4 0 0 0 646.7,325.0 V331.0 A4,4 0 0 0 650.7,335.0 H670.0 Z"/><text class="value" x="640.7" y="328.0" text-anchor="end">-1.9%</text></g><g class="row"><title>Delivering the Truth (Quaker Midwife Mystery #1): £20.89 → £18.73 (-10.3%)</title><rect class="hit" x="0" y="342" width="1040" height="28"/><text class="label" x="300" y="356.0">Delivering the Truth (Quaker Midwife My…</text><path class="bar bar-down" d="M670.0,349.0 H547.9 A4,4 0 0 0 543.9,353.0 V359.0 A4,4 0 0 0 547.9,363.0 H670.0 Z"/><text class="value" x="537.9" y="356.0" text-anchor="end">-10.3%</text></g><g class="row"><title>Quarter Life Poetry: Poems for the Young, Broke and Hangry: £50.89 → £41.41 (-18.6%)</title><rect class="hit" x="0" y="370" width="1040" height="28"/><text class="label" x="300" y="384.0">Quarter Life Poetry: Poems for the Youn…</text><path class="bar bar-down" d="M670.0,377.0 H446.3 A4,4 0 0 0 442.3,381.0 V387.0 A4,4 0 0 0 446.3,391.0 H670.0 Z"/><text class="value" x="436.3" y="384.0" text-anchor="end">-18.6%</text></g><g class="row"><title>The Road to Little Dribbling: Adventures of an American in Britain (Notes From a Small Island #2): £23.21 → £18.37 (-20.9%)</title><rect class="hit" x="0" y="398" width="1040" height="28"/><text class="label" x="300" y="412.0">The Road to Little Dribbling: Adventure…</text><path class="bar bar-down" d="M670.0,405.0 H418.2 A4,4 0 0 0 414.2,409.0 V415.0 A4,4 0 0 0 418.2,419.0 H670.0 Z"/><text class="value" x="408.2" y="412.0" text-anchor="end">-20.9%</text></g><g class="row"><title>Vagabonding: An Uncommon Guide to the Art of Long-Term World Travel: £36.94 → £27.92 (-24.4%)</title><rect class="hit" x="0" y="426" width="1040" height="28"/><text class="label" x="300" y="440.0">Vagabonding: An Uncommon Guide to the A…</text><path class="bar bar-down" d="M670.0,433.0 H375.3 A4,4 0 0 0 371.3,437.0 V443.0 A4,4 0 0 0 375.3,447.0 H670.0 Z"/><text class="value" x="365.3" y="440.0" text-anchor="end">-24.4%</text></g><g class="row"><title>Girl With a Pearl Earring: £26.77 → £20.10 (-24.9%)</title><rect class="hit" x="0" y="454" width="1040" height="28"/><text class="label" x="300" y="468.0">Girl With a Pearl Earring</text><path class="bar bar-down" d="M670.0,461.0 H369.2 A4,4 0 0 0 365.2,465.0 V471.0 A4,4 0 0 0 369.2,475.0 H670.0 Z"/><text class="value" x="359.2" y="468.0" text-anchor="end">-24.9%</text></g></svg></div>
+  </section>
+
+  <section class="card">
+    <div class="card-head">
+      <div>
+        <h2>All detected changes</h2>
+        <p>22 changes · 14 alerts</p>
+      </div>
+    </div>
+    <div class="table-scroll">
+    <table>
+      <thead>
+        <tr>
+          <th>Change</th><th>Product</th><th class="num">Was</th><th class="num">Now</th>
+          <th class="num">Change</th><th class="num">%</th><th>Stock</th><th>Alert</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="badge down">Price down</span></td>
+          <td class="product"><a href="https://books.toscrape.com/catalogue/girl-with-a-pearl-earring_322/index.html" target="_blank" rel="noopener">Girl With a Pearl Earring</a><span class="cat">Historical Fiction</span></td>
+          <td class="num">£26.77</td>
+          <td class="num">£20.10</td>
+          <td class="num delta down">-£6.67</td>
+          <td class="num delta down">-24.9%</td>
+          <td class="stock">
+              <span class="">In stock (4)</span>
+          </td>
+          <td><span class="alert-flag">Alert</span></td>
+        </tr>
+        <tr>
+          <td><span class="badge down">Price down</span></td>
+          <td class="product"><a href="https://books.toscrape.com/catalogue/vagabonding-an-uncommon-guide-to-the-art-of-long-term-world-travel_552/index.html" target="_blank" rel="noopener">Vagabonding: An Uncommon Guide to the Art of Long-Term World Travel</a><span class="cat">Travel</span></td>
+          <td class="num">£36.94</td>
+          <td class="num">£27.92</td>
+          <td class="num delta down">-£9.02</td>
+          <td class="num delta down">-24.4%</td>
+          <td class="stock">
+              <span class="">In stock (8)</span>
+          </td>
+          <td><span class="alert-flag">Alert</span></td>
+        </tr>
+        <tr>
+          <td><span class="badge down">Price down</span></td>
+          <td class="product"><a href="https://books.toscrape.com/catalogue/the-road-to-little-dribbling-adventures-of-an-american-in-britain-notes-from-a-small-island-2_277/index.html" target="_blank" rel="noopener">The Road to Little Dribbling: Adventures of an American in Britain (Notes From a Small Island #2)</a><span class="cat">Travel</span></td>
+          <td class="num">£23.21</td>
+          <td class="num">£18.37</td>
+          <td class="num delta down">-£4.84</td>
+          <td class="num delta down">-20.9%</td>
+          <td class="stock">
+              <span class="">In stock (3)</span>
+          </td>
+          <td><span class="alert-flag">Alert</span></td>
+        </tr>
+        <tr>
+          <td><span class="badge down">Price down</span></td>
+          <td class="product"><a href="https://books.toscrape.com/catalogue/quarter-life-poetry-poems-for-the-young-broke-and-hangry_727/index.html" target="_blank" rel="noopener">Quarter Life Poetry: Poems for the Young, Broke and Hangry</a><span class="cat">Poetry</span></td>
+          <td class="num">£50.89</td>
+          <td class="num">£41.41</td>
+          <td class="num delta down">-£9.48</td>
+          <td class="num delta down">-18.6%</td>
+          <td class="stock">
+              <span class="">In stock (14)</span>
+          </td>
+          <td><span class="alert-flag">Alert</span></td>
+        </tr>
+        <tr>
+          <td><span class="badge down">Price down</span></td>
+          <td class="product"><a href="https://books.toscrape.com/catalogue/delivering-the-truth-quaker-midwife-mystery-1_464/index.html" target="_blank" rel="noopener">Delivering the Truth (Quaker Midwife Mystery #1)</a><span class="cat">Mystery</span></td>
+          <td class="num">£20.89</td>
+          <td class="num">£18.73</td>
+          <td class="num delta down">-£2.16</td>
+          <td class="num delta down">-10.3%</td>
+          <td class="stock">
+              <span class="">In stock (7)</span>
+          </td>
+          <td><span class="alert-flag">Alert</span></td>
+        </tr>
+        <tr>
+          <td><span class="badge down">Price down</span></td>
+          <td class="product"><a href="https://books.toscrape.com/catalogue/the-marriage-of-opposites_759/index.html" target="_blank" rel="noopener">The Marriage of Opposites</a><span class="cat">Historical Fiction</span></td>
+          <td class="num">£28.08</td>
+          <td class="num">£27.56</td>
+          <td class="num delta down">-£0.52</td>
+          <td class="num delta down">-1.9%</td>
+          <td class="stock">
+              <span class="">In stock (14)</span>
+          </td>
+          <td><span class="quiet">-</span></td>
+        </tr>
+        <tr>
+          <td><span class="badge down">Price down</span></td>
+          <td class="product"><a href="https://books.toscrape.com/catalogue/tipping-the-velvet_999/index.html" target="_blank" rel="noopener">Tipping the Velvet</a><span class="cat">Historical Fiction</span></td>
+          <td class="num">£53.74</td>
+          <td class="num">£52.83</td>
+          <td class="num delta down">-£0.91</td>
+          <td class="num delta down">-1.7%</td>
+          <td class="stock">
+              <span class="">In stock (20)</span>
+          </td>
+          <td><span class="quiet">-</span></td>
+        </tr>
+        <tr>
+          <td><span class="badge down">Price down</span></td>
+          <td class="product"><a href="https://books.toscrape.com/catalogue/hide-away-eve-duncan-20_620/index.html" target="_blank" rel="noopener">Hide Away (Eve Duncan #20)</a><span class="cat">Mystery</span></td>
+          <td class="num">£11.84</td>
+          <td class="num">£11.66</td>
+          <td class="num delta down">-£0.18</td>
+          <td class="num delta down">-1.5%</td>
+          <td class="stock">
+              <span class="">In stock (12)</span>
+          </td>
+          <td><span class="quiet">-</span></td>
+        </tr>
+        <tr>
+          <td><span class="badge up">Price up</span></td>
+          <td class="product"><a href="https://books.toscrape.com/catalogue/slow-states-of-collapse-poems_960/index.html" target="_blank" rel="noopener">Slow States of Collapse: Poems</a><span class="cat">Poetry</span></td>
+          <td class="num">£57.31</td>
+          <td class="num">£70.04</td>
+          <td class="num delta up">+£12.73</td>
+          <td class="num delta up">+22.2%</td>
+          <td class="stock">
+              <span class="">In stock (17)</span>
+          </td>
+          <td><span class="alert-flag">Alert</span></td>
+        </tr>
+        <tr>
+          <td><span class="badge up">Price up</span></td>
+          <td class="product"><a href="https://books.toscrape.com/catalogue/between-shades-of-gray_128/index.html" target="_blank" rel="noopener">Between Shades of Gray</a><span class="cat">Historical Fiction</span></td>
+          <td class="num">£20.79</td>
+          <td class="num">£24.83</td>
+          <td class="num delta up">+£4.04</td>
+          <td class="num delta up">+19.4%</td>
+          <td class="stock">
+              <span class="">In stock (3)</span>
+          </td>
+          <td><span class="alert-flag">Alert</span></td>
+        </tr>
+        <tr>
+          <td><span class="badge up">Price up</span></td>
+          <td class="product"><a href="https://books.toscrape.com/catalogue/the-girl-you-lost_66/index.html" target="_blank" rel="noopener">The Girl You Lost</a><span class="cat">Mystery</span></td>
+          <td class="num">£12.29</td>
+          <td class="num">£14.48</td>
+          <td class="num delta up">+£2.19</td>
+          <td class="num delta up">+17.8%</td>
+          <td class="stock">
+              <span class="">In stock (1)</span>
+          </td>
+          <td><span class="alert-flag">Alert</span></td>
+        </tr>
+        <tr>
+          <td><span class="badge up">Price up</span></td>
+          <td class="product"><a href="https://books.toscrape.com/catalogue/the-collected-poems-of-wb-yeats-the-collected-works-of-wb-yeats-1_441/index.html" target="_blank" rel="noopener">The Collected Poems of W.B. Yeats (The Collected Works of W.B. Yeats #1)</a><span class="cat">Poetry</span></td>
+          <td class="num">£15.42</td>
+          <td class="num">£17.49</td>
+          <td class="num delta up">+£2.07</td>
+          <td class="num delta up">+13.4%</td>
+          <td class="stock">
+              <span class="">In stock (6)</span>
+          </td>
+          <td><span class="alert-flag">Alert</span></td>
+        </tr>
+        <tr>
+          <td><span class="badge up">Price up</span></td>
+          <td class="product"><a href="https://books.toscrape.com/catalogue/under-the-tuscan-sun_504/index.html" target="_blank" rel="noopener">Under the Tuscan Sun</a><span class="cat">Travel</span></td>
+          <td class="num">£37.33</td>
+          <td class="num">£42.05</td>
+          <td class="num delta up">+£4.72</td>
+          <td class="num delta up">+12.6%</td>
+          <td class="stock">
+              <span class="">In stock (7)</span>
+          </td>
+          <td><span class="alert-flag">Alert</span></td>
+        </tr>
+        <tr>
+          <td><span class="badge up">Price up</span></td>
+          <td class="product"><a href="https://books.toscrape.com/catalogue/dune-dune-1_151/index.html" target="_blank" rel="noopener">Dune (Dune #1)</a><span class="cat">Science Fiction</span></td>
+          <td class="num">£54.86</td>
+          <td class="num">£56.72</td>
+          <td class="num delta up">+£1.86</td>
+          <td class="num delta up">+3.4%</td>
+          <td class="stock">
+              <span class="">In stock (3)</span>
+          </td>
+          <td><span class="quiet">-</span></td>
+        </tr>
+        <tr>
+          <td><span class="badge up">Price up</span></td>
+          <td class="product"><a href="https://books.toscrape.com/catalogue/night-sky-with-exit-wounds_822/index.html" target="_blank" rel="noopener">Night Sky with Exit Wounds</a><span class="cat">Poetry</span></td>
+          <td class="num">£41.05</td>
+          <td class="num">£42.33</td>
+          <td class="num delta up">+£1.28</td>
+          <td class="num delta up">+3.1%</td>
+          <td class="stock">
+              <span class="">In stock (15)</span>
+          </td>
+          <td><span class="quiet">-</span></td>
+        </tr>
+        <tr>
+          <td><span class="badge up">Price up</span></td>
+          <td class="product"><a href="https://books.toscrape.com/catalogue/the-secret-healer_80/index.html" target="_blank" rel="noopener">The Secret Healer</a><span class="cat">Historical Fiction</span></td>
+          <td class="num">£34.56</td>
+          <td class="num">£35.63</td>
+          <td class="num delta up">+£1.07</td>
+          <td class="num delta up">+3.1%</td>
+          <td class="stock">
+              <span class="">In stock (1)</span>
+          </td>
+          <td><span class="quiet">-</span></td>
+        </tr>
+        <tr>
+          <td><span class="badge out">Out of stock</span></td>
+          <td class="product"><a href="https://books.toscrape.com/catalogue/booked_365/index.html" target="_blank" rel="noopener">Booked</a><span class="cat">Poetry</span></td>
+          <td class="num">£17.49</td>
+          <td class="num">£17.49</td>
+          <td class="num delta "></td>
+          <td class="num delta "></td>
+          <td class="stock">
+              In stock (5)<span class="arrow">→</span><span class="oos">Out of stock</span>
+          </td>
+          <td><span class="alert-flag">Alert</span></td>
+        </tr>
+        <tr>
+          <td><span class="badge out">Out of stock</span></td>
+          <td class="product"><a href="https://books.toscrape.com/catalogue/how-to-cook-everything-vegetarian-simple-meatless-recipes-for-great-food-how-to-cook-everything_471/index.html" target="_blank" rel="noopener">How to Cook Everything Vegetarian: Simple Meatless Recipes for Great Food (How to Cook Everything)</a><span class="cat">Food and Drink</span></td>
+          <td class="num">£46.01</td>
+          <td class="num">£46.01</td>
+          <td class="num delta "></td>
+          <td class="num delta "></td>
+          <td class="stock">
+              In stock (7)<span class="arrow">→</span><span class="oos">Out of stock</span>
+          </td>
+          <td><span class="alert-flag">Alert</span></td>
+        </tr>
+        <tr>
+          <td><span class="badge out">Out of stock</span></td>
+          <td class="product"><a href="https://books.toscrape.com/catalogue/lilac-girls_597/index.html" target="_blank" rel="noopener">Lilac Girls</a><span class="cat">Historical Fiction</span></td>
+          <td class="num">£17.28</td>
+          <td class="num">£17.28</td>
+          <td class="num delta "></td>
+          <td class="num delta "></td>
+          <td class="stock">
+              In stock (11)<span class="arrow">→</span><span class="oos">Out of stock</span>
+          </td>
+          <td><span class="alert-flag">Alert</span></td>
+        </tr>
+        <tr>
+          <td><span class="badge out">Out of stock</span></td>
+          <td class="product"><a href="https://books.toscrape.com/catalogue/sleeping-giants-themis-files-1_604/index.html" target="_blank" rel="noopener">Sleeping Giants (Themis Files #1)</a><span class="cat">Science Fiction</span></td>
+          <td class="num">£48.74</td>
+          <td class="num">£48.74</td>
+          <td class="num delta "></td>
+          <td class="num delta "></td>
+          <td class="stock">
+              In stock (11)<span class="arrow">→</span><span class="oos">Out of stock</span>
+          </td>
+          <td><span class="alert-flag">Alert</span></td>
+        </tr>
+        <tr>
+          <td><span class="badge removed">Removed</span></td>
+          <td class="product"><a href="https://books.toscrape.com/catalogue/1000-places-to-see-before-you-die_1/index.html" target="_blank" rel="noopener">1,000 Places to See Before You Die</a><span class="cat">Travel</span></td>
+          <td class="num">£26.08</td>
+          <td class="num">-</td>
+          <td class="num delta "></td>
+          <td class="num delta "></td>
+          <td class="stock">
+              In stock (1)
+          </td>
+          <td><span class="quiet">-</span></td>
+        </tr>
+        <tr>
+          <td><span class="badge removed">Removed</span></td>
+          <td class="product"><a href="https://books.toscrape.com/catalogue/playing-with-fire_602/index.html" target="_blank" rel="noopener">Playing with Fire</a><span class="cat">Mystery</span></td>
+          <td class="num">£13.71</td>
+          <td class="num">-</td>
+          <td class="num delta "></td>
+          <td class="num delta "></td>
+          <td class="stock">
+              In stock (11)
+          </td>
+          <td><span class="quiet">-</span></td>
+        </tr>
+      </tbody>
+    </table>
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="card-head">
+      <div>
+        <h2>Catalogue overview</h2>
+        <p>Latest snapshot (run #2) by category · full product list in the Excel and CSV exports</p>
+      </div>
+    </div>
+    <div class="table-scroll">
+    <table>
+      <thead>
+        <tr><th>Category</th><th class="num">Products</th><th class="num">In stock</th><th class="num">Avg price</th><th class="num">Min</th><th class="num">Max</th><th>Avg rating</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Food and Drink</td>
+          <td class="num">30</td>
+          <td class="num">29</td>
+          <td class="num">£31.41</td>
+          <td class="num">£11.05</td>
+          <td class="num">£59.92</td>
+          <td>
+            <span class="rating" aria-label="2.9 of 5">★★★<span class="off">★★</span></span>
+            <span class="quiet">2.9</span>
+          </td>
+        </tr>
+        <tr>
+          <td>Historical Fiction</td>
+          <td class="num">26</td>
+          <td class="num">25</td>
+          <td class="num">£33.53</td>
+          <td class="num">£16.62</td>
+          <td class="num">£55.55</td>
+          <td>
+            <span class="rating" aria-label="3.2 of 5">★★★<span class="off">★★</span></span>
+            <span class="quiet">3.2</span>
+          </td>
+        </tr>
+        <tr>
+          <td>Mystery</td>
+          <td class="num">31</td>
+          <td class="num">31</td>
+          <td class="num">£32.30</td>
+          <td class="num">£10.69</td>
+          <td class="num">£59.48</td>
+          <td>
+            <span class="rating" aria-label="2.9 of 5">★★★<span class="off">★★</span></span>
+            <span class="quiet">2.9</span>
+          </td>
+        </tr>
+        <tr>
+          <td>Poetry</td>
+          <td class="num">19</td>
+          <td class="num">18</td>
+          <td class="num">£36.32</td>
+          <td class="num">£14.19</td>
+          <td class="num">£70.04</td>
+          <td>
+            <span class="rating" aria-label="3.5 of 5">★★★★<span class="off">★</span></span>
+            <span class="quiet">3.5</span>
+          </td>
+        </tr>
+        <tr>
+          <td>Science Fiction</td>
+          <td class="num">16</td>
+          <td class="num">15</td>
+          <td class="num">£33.92</td>
+          <td class="num">£10.65</td>
+          <td class="num">£56.72</td>
+          <td>
+            <span class="rating" aria-label="2.2 of 5">★★<span class="off">★★★</span></span>
+            <span class="quiet">2.2</span>
+          </td>
+        </tr>
+        <tr>
+          <td>Travel</td>
+          <td class="num">10</td>
+          <td class="num">10</td>
+          <td class="num">£40.25</td>
+          <td class="num">£18.37</td>
+          <td class="num">£56.88</td>
+          <td>
+            <span class="rating" aria-label="2.5 of 5">★★<span class="off">★★★</span></span>
+            <span class="quiet">2.5</span>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    </div>
+  </section>
+
+  <footer>
+    <span>Source: <a href="https://books.toscrape.com/">https://books.toscrape.com/</a> - a public sandbox shop built for scraping practice. Prices in GBP.</span>
+    <span>Alert threshold: 5% price change</span>
+  </footer>
+</main>
+</body>
+</html>
