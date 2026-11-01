@@ -54,7 +54,9 @@ dozen products and gives no history. Price Monitor automates the routine:
   - **Excel** (`openpyxl`): Summary, Changes and Snapshot sheets, styled header, frozen
     header row, autofilter, currency/percent number formats and real conditional
     formatting (colours survive sorting and filtering);
-  - **CSV** for the latest snapshot and for the changes (UTF-8 with BOM, opens cleanly in Excel).
+  - **CSV** for the latest snapshot and for the changes (UTF-8 with BOM, opens cleanly in Excel);
+  - optional **Google Sheet** (`-f sheets`): the same Summary, Changes and Snapshot sheets,
+    replaced on every run, prices as numbers (see [Google Sheets](#google-sheets)).
 - **Pluggable notifiers**: console (rich table) and Telegram Bot API. Telegram is enabled only
   when a token and chat id are configured; the token is never logged.
 - **CLI** (`typer`) and configuration through environment variables or `.env`
@@ -88,7 +90,7 @@ about 15 seconds when the sample output below was recorded.
 | `price-monitor scrape [-c "Travel,Poetry"]` | Crawl the configured categories and store a new snapshot. |
 | `price-monitor demo-snapshot [--seed 42]` | **Demo only.** Store a simulated follow-up snapshot derived from the latest run. |
 | `price-monitor diff [-t 5] [--notify]` | Show changes between the two latest runs; `--notify` sends alerts to all configured notifiers. |
-| `price-monitor report [-o DIR] [-f html,xlsx,csv] [-t 5]` | Write the reports for the latest run and its changes. |
+| `price-monitor report [-o DIR] [-f html,xlsx,csv,sheets] [-t 5]` | Write the reports for the latest run and its changes. `sheets` is opt-in (not in the default set), see [Google Sheets](#google-sheets). |
 | `price-monitor run [--simulate-changes] [-o DIR]` | Full pipeline: scrape, diff, alerts, reports. |
 | `price-monitor runs` | List stored runs (real or simulated). |
 
@@ -104,7 +106,8 @@ price-monitor report          # HTML + Excel + CSV in reports/
 ```
 
 Exit codes: `0` success, `1` failure (site unreachable, pages failed, no runs yet),
-`2` invalid input (unknown category or report format).
+`2` invalid input (unknown category or report format, missing Google Sheets settings).
+With `-f sheets`, `1` also means Google refused access to the spreadsheet.
 
 ## Configuration
 
@@ -120,11 +123,39 @@ Copy `.env.example` to `.env`; every value is optional. The most useful settings
 | `PM_ALERT_ON_NEW_REMOVED` | `false` | Also alert on new / removed products |
 | `PM_DB_PATH` / `PM_REPORTS_DIR` | `data/price_monitor.db` / `reports` | Output locations |
 | `PM_TELEGRAM_BOT_TOKEN` / `PM_TELEGRAM_CHAT_ID` | empty | Enable the Telegram notifier |
+| `PM_GOOGLE_SERVICE_ACCOUNT_FILE` | empty | Path to the service account JSON key (needed for `-f sheets`) |
+| `PM_GOOGLE_SHEET_ID` | empty | Spreadsheet ID or its full URL (needed for `-f sheets`) |
 
 Alert rules: a price change is an alert when it moves by at least the threshold (compared on
 the exact ratio, so 4.99 % is not 5 %); a product going out of stock or back in stock is always
 an alert; new and removed products are always reported and become alerts only when
 `PM_ALERT_ON_NEW_REMOVED=true`.
+
+## Google Sheets
+
+Optional output for teams that work in a spreadsheet instead of Excel files.
+
+1. Install the extra: `pip install -e ".[sheets]"` (adds `gspread`; the base install does not need it).
+2. In the [Google Cloud console](https://console.cloud.google.com/) create a project, enable
+   the **Google Sheets API**, create a **service account** and download a JSON key for it.
+3. Create an empty Google Sheet and **share it (as Editor) with the service account's e-mail**
+   (the `client_email` value in the key file).
+4. Set the two variables (in `.env` or the environment) and run:
+
+```bash
+export PM_GOOGLE_SERVICE_ACCOUNT_FILE=secrets/service-account.json   # keep it out of git
+export PM_GOOGLE_SHEET_ID="https://docs.google.com/spreadsheets/d/<ID>/edit"   # or just <ID>
+price-monitor report -f sheets            # or: price-monitor run -f html,xlsx,csv,sheets
+```
+
+The worksheets `Summary`, `Changes` and `Snapshot` are created when missing and their contents
+are replaced on every run (other worksheets are not touched). Prices, deltas and percentages are
+numbers, so the sheet can sort and sum them. If the service account cannot see the sheet, the
+command says so and prints the e-mail to share with; the key itself is never printed.
+
+**Not run live in this demo:** the Sheets writer is covered by offline tests against a fake
+`gspread` client, and the `gspread` calls were checked against its installed source. It has not
+been run against a real Google account, because no Google credentials were available.
 
 ## Sample output
 
@@ -205,7 +236,7 @@ src/price_monitor/
 ├── storage.py           # SQLite snapshots
 ├── diff.py              # change detection, alert rules, summary
 ├── demo.py              # simulated follow-up snapshot (demo only)
-├── reports/             # html.py + templates/, chart.py (SVG), excel.py, csv_export.py
+├── reports/             # html.py + templates/, chart.py (SVG), excel.py, csv_export.py, sheets.py
 └── notifiers/           # base.py, console.py, telegram.py, build_notifiers()
 ```
 
@@ -242,7 +273,9 @@ marked as such in the file), pagination and de-duplication, retries/backoff/`Ret
 non-retried 4xx, robots.txt, the concurrency limit, failed pages not being dropped silently,
 storage round-trips and transactions, every change type and the threshold boundary, the demo
 simulation, Excel structure and conditional formatting, CSV columns, HTML escaping and the demo
-banner, Telegram formatting/splitting/error handling (with a mocked transport) and the CLI flows.
+banner, Google Sheets output (against a fake `gspread` client: rows, numbers, replacement on
+rerun, missing settings, no access), Telegram formatting/splitting/error handling (with a
+mocked transport) and the CLI flows.
 
 ## Docker
 

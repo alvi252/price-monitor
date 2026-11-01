@@ -53,6 +53,10 @@ class Settings(BaseSettings):
     db_path: Path = Path("data/price_monitor.db")
     reports_dir: Path = Path("reports")
 
+    # Google Sheets output (report format "sheets"); needs the ``sheets`` extra.
+    google_service_account_file: Path | None = None
+    google_sheet_id: str | None = Field(None, description="Spreadsheet ID or its URL.")
+
     # --- Alerts --------------------------------------------------------------
     alert_threshold_pct: Decimal = Field(Decimal("5"), ge=0)
     alert_on_new_removed: bool = False
