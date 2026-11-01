@@ -1,4 +1,4 @@
-"""Report writers: Excel, CSV and a self-contained HTML page."""
+"""Report writers: Excel, CSV, a self-contained HTML page and (optionally) Google Sheets."""
 
 from __future__ import annotations
 
@@ -11,6 +11,8 @@ from price_monitor.reports.excel import write_excel
 from price_monitor.reports.html import write_html
 
 FORMATS = ("html", "xlsx", "csv")
+# Not part of FORMATS (the default set): it writes to Google, needs credentials and is opt-in.
+SHEETS_FORMAT = "sheets"
 
 
 def write_reports(
@@ -30,4 +32,11 @@ def write_reports(
     return paths
 
 
-__all__ = ["FORMATS", "write_csv", "write_excel", "write_html", "write_reports"]
+__all__ = [
+    "FORMATS",
+    "SHEETS_FORMAT",
+    "write_csv",
+    "write_excel",
+    "write_html",
+    "write_reports",
+]

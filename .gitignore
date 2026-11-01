@@ -15,3 +15,6 @@ dist/
 
 # Local configuration
 .env
+
+# Google service account keys (see README, Google Sheets)
+/secrets/
