@@ -31,6 +31,8 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+# Google Sheets report output (imported lazily; the base install does not need it).
+sheets = ["gspread>=6,<7"]
 dev = ["pytest>=8", "ruff>=0.6"]
 # Only needed to regenerate the README screenshots (scripts/capture_screenshots.py).
 screenshots = ["playwright>=1.45"]

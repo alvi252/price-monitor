@@ -24,7 +24,8 @@ from price_monitor.diff import CHANGE_ORDER, DiffResult, build_diff
 from price_monitor.models import Run
 from price_monitor.notifiers import build_notifiers
 from price_monitor.notifiers.console import changes_table
-from price_monitor.reports import FORMATS, write_reports
+from price_monitor.reports import FORMATS, SHEETS_FORMAT, write_reports
+from price_monitor.reports.sheets import SheetsAccessError, write_sheets
 from price_monitor.scraper import CategoryNotFoundError, crawl_site
 from price_monitor.scraper.http import FetchError
 from price_monitor.storage import Storage
@@ -47,7 +48,14 @@ ThresholdOpt = Annotated[
 OutOpt = Annotated[
     Path | None, typer.Option("--out", "-o", help="Report directory (default: PM_REPORTS_DIR).")
 ]
-FormatsOpt = Annotated[str, typer.Option("--format", "-f", help="Comma-separated: html,xlsx,csv.")]
+FormatsOpt = Annotated[
+    str,
+    typer.Option(
+        "--format",
+        "-f",
+        help="Comma-separated: html,xlsx,csv,sheets (sheets = Google Sheet, see README).",
+    ),
+]
 ALL_FORMATS = ",".join(FORMATS)
 
 
@@ -229,9 +237,11 @@ def _write_reports(
     settings: Settings, diff: DiffResult, out: Path | None, formats: str
 ) -> list[Path]:
     wanted = [f.strip().lower() for f in formats.split(",") if f.strip()]
+    to_sheets = SHEETS_FORMAT in wanted
+    files = [f for f in wanted if f != SHEETS_FORMAT]
     try:
         paths = write_reports(
-            diff, out or settings.reports_dir, site_url=settings.base_url, formats=wanted
+            diff, out or settings.reports_dir, site_url=settings.base_url, formats=files
         )
     except ValueError as exc:
         err_console.print(f"[red]Error:[/] {exc}")
@@ -239,7 +249,26 @@ def _write_reports(
     console.print("[bold]Reports[/]")
     for path in paths:
         console.print(f"  [green]+[/] {path}")
+    if to_sheets:
+        _write_sheets(settings, diff)
     return paths
+
+
+def _write_sheets(settings: Settings, diff: DiffResult) -> None:
+    try:
+        target = write_sheets(
+            diff,
+            key_file=settings.google_service_account_file,
+            sheet=settings.google_sheet_id,
+            timeout=settings.timeout,
+        )
+    except ValueError as exc:  # SheetsConfigError: missing or unusable settings
+        err_console.print(f"[red]Error:[/] {exc}")
+        raise typer.Exit(2) from exc
+    except SheetsAccessError as exc:
+        err_console.print(f"[red]Google Sheets:[/] {exc}")
+        raise typer.Exit(1) from exc
+    console.print(f"  [green]+[/] {target}")
 
 
 # --------------------------------------------------------------------------- commands
@@ -298,7 +327,7 @@ def report(
     formats: FormatsOpt = ALL_FORMATS,
     threshold: ThresholdOpt = None,
 ) -> None:
-    """Write HTML, Excel and CSV reports for the latest run (and changes vs the previous one)."""
+    """Write HTML, Excel, CSV (and with -f sheets, Google Sheets) reports for the latest run."""
     settings = _settings(ctx)
     _write_reports(settings, _load_diff(settings, threshold), out, formats)
 

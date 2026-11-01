@@ -60,7 +60,13 @@ SNAPSHOT_HEADER = [
 ]
 
 
-def _money_format(currency: str, signed: bool = False) -> str:
+SIMULATED_NOTE = (
+    "Note: the current run was produced by `price-monitor demo-snapshot` - "
+    "its changes are SIMULATED from a real crawl for demonstration."
+)
+
+
+def money_format(currency: str, signed: bool = False) -> str:
     sign = CURRENCY_SIGNS.get(currency, "")
     body = f'"{sign}"#,##0.00' if sign else "#,##0.00"
     return f"+{body};-{body};{body}" if signed else body
@@ -117,6 +123,24 @@ def _write_summary(ws: Worksheet, diff: DiffResult) -> None:
     ws["A2"] = f"Generated {generated} by price-monitor {__version__}"
     ws["A2"].font = MUTED_FONT
 
+    rows = summary_rows(diff)
+    start = 4
+    for offset, (label, value) in enumerate(rows):
+        label_cell = ws.cell(row=start + offset, column=1, value=label)
+        label_cell.font = Font(bold=True)
+        value_cell = ws.cell(row=start + offset, column=2, value=value)
+        value_cell.alignment = Alignment(horizontal="left")
+
+    if diff.current.is_simulated:
+        note_row = start + len(rows) + 1
+        note = ws.cell(row=note_row, column=1, value=SIMULATED_NOTE)
+        note.font = Font(bold=True, color="8A5A00")
+    ws.column_dimensions["A"].width = 24
+    ws.column_dimensions["B"].width = 58
+
+
+def summary_rows(diff: DiffResult) -> list[tuple[str, object]]:
+    """Label/value pairs of the Summary sheet (the Google Sheets writer reuses them)."""
     summary = diff.summary
     rows: list[tuple[str, object]] = [
         ("Previous run", _run_text(diff.previous)),
@@ -130,27 +154,7 @@ def _write_summary(ws: Worksheet, diff: DiffResult) -> None:
         rows.append(("Alerts", summary.alerts))
         if summary.avg_price_change_pct is not None:
             rows.append(("Average price change", f"{summary.avg_price_change_pct:+.1f}%"))
-
-    start = 4
-    for offset, (label, value) in enumerate(rows):
-        label_cell = ws.cell(row=start + offset, column=1, value=label)
-        label_cell.font = Font(bold=True)
-        value_cell = ws.cell(row=start + offset, column=2, value=value)
-        value_cell.alignment = Alignment(horizontal="left")
-
-    if diff.current.is_simulated:
-        note_row = start + len(rows) + 1
-        note = ws.cell(
-            row=note_row,
-            column=1,
-            value=(
-                "Note: the current run was produced by `price-monitor demo-snapshot` - "
-                "its changes are SIMULATED from a real crawl for demonstration."
-            ),
-        )
-        note.font = Font(bold=True, color="8A5A00")
-    ws.column_dimensions["A"].width = 24
-    ws.column_dimensions["B"].width = 58
+    return rows
 
 
 def _run_text(run: Run | None) -> str:
@@ -160,25 +164,51 @@ def _run_text(run: Run | None) -> str:
     return f"#{run.id} - {run.finished_at:%Y-%m-%d %H:%M} UTC - {kind}"
 
 
+def changes_rows(diff: DiffResult) -> list[list[object]]:
+    """One row per change, in the order of ``CHANGES_HEADER`` (also used by Google Sheets)."""
+    rows: list[list[object]] = []
+    for c in diff.changes:
+        pct = c.price_delta_pct
+        rows.append(
+            [
+                c.type.label,
+                c.name,
+                c.category,
+                c.sku,
+                c.old_price,
+                c.new_price,
+                c.price_delta,
+                (pct / 100) if pct is not None else None,
+                _stock(c.old_in_stock, c.old_stock_count),
+                _stock(c.new_in_stock, c.new_stock_count),
+                "Yes" if c.is_alert else None,
+                c.url,
+            ]
+        )
+    return rows
+
+
+def snapshot_rows(diff: DiffResult) -> list[list[object]]:
+    """One row per product, in the order of ``SNAPSHOT_HEADER`` (also used by Google Sheets)."""
+    return [
+        [
+            p.name,
+            p.category,
+            p.sku,
+            p.price,
+            "Yes" if p.in_stock else "No",
+            p.stock_count,
+            p.rating,
+            p.url,
+        ]
+        for p in diff.snapshot
+    ]
+
+
 def _write_changes(ws: Worksheet, diff: DiffResult, currency: str) -> None:
     _write_header(ws, CHANGES_HEADER)
-    money_fmt, delta_fmt = _money_format(currency), _money_format(currency, signed=True)
-    for row, c in enumerate(diff.changes, start=2):
-        pct = c.price_delta_pct
-        values: list[object] = [
-            c.type.label,
-            c.name,
-            c.category,
-            c.sku,
-            c.old_price,
-            c.new_price,
-            c.price_delta,
-            (pct / 100) if pct is not None else None,
-            _stock(c.old_in_stock, c.old_stock_count),
-            _stock(c.new_in_stock, c.new_stock_count),
-            "Yes" if c.is_alert else None,
-            c.url,
-        ]
+    money_fmt, delta_fmt = money_format(currency), money_format(currency, signed=True)
+    for row, values in enumerate(changes_rows(diff), start=2):
         for col, value in enumerate(values, start=1):
             cell = ws.cell(row=row, column=col, value=value)
             if col in (5, 6):
@@ -187,7 +217,7 @@ def _write_changes(ws: Worksheet, diff: DiffResult, currency: str) -> None:
                 cell.number_format = delta_fmt
             elif col == 8:
                 cell.number_format = "+0.0%;-0.0%;0.0%"
-        ws.cell(row=row, column=12).hyperlink = c.url
+        ws.cell(row=row, column=12).hyperlink = values[-1]
         ws.cell(row=row, column=12).font = Font(color="1C5CAB", underline="single")
 
     n = len(diff.changes)
@@ -221,23 +251,13 @@ def _write_changes(ws: Worksheet, diff: DiffResult, currency: str) -> None:
 
 def _write_snapshot(ws: Worksheet, diff: DiffResult, currency: str) -> None:
     _write_header(ws, SNAPSHOT_HEADER)
-    money_fmt = _money_format(currency)
-    for row, p in enumerate(diff.snapshot, start=2):
-        values: list[object] = [
-            p.name,
-            p.category,
-            p.sku,
-            p.price,
-            "Yes" if p.in_stock else "No",
-            p.stock_count,
-            p.rating,
-            p.url,
-        ]
+    money_fmt = money_format(currency)
+    for row, values in enumerate(snapshot_rows(diff), start=2):
         for col, value in enumerate(values, start=1):
             cell = ws.cell(row=row, column=col, value=value)
             if col == 4:
                 cell.number_format = money_fmt
-        ws.cell(row=row, column=8).hyperlink = p.url
+        ws.cell(row=row, column=8).hyperlink = values[-1]
         ws.cell(row=row, column=8).font = Font(color="1C5CAB", underline="single")
     n = len(diff.snapshot)
     _finish_table(ws, len(SNAPSHOT_HEADER), n)
